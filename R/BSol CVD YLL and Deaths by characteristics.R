@@ -126,6 +126,11 @@ BSol <- BSol %>%
     )
   )
 
+
+BSol$IMD_quintile <- as.factor(BSol$IMD_quintile)
+
+BSol$SEX <- factor(BSol$SEX, levels = c(1, 2), labels = c("Male", "Female"))
+
 ##################               ####################
 ##### deaths plot by age
 ################              ###############
@@ -138,7 +143,7 @@ AgeDeathsSubGroup <- BSol %>%
 #plot
 AgeDeathsSubGroupPlot <- ggplot(data= AgeDeathsSubGroup, aes(x = `ICD10 Short Title`, y = Deaths, fill = AgeGroup)) +
   geom_bar(position = "stack", stat= "identity") +
-  labs( y = "Average Yearly Deaths, 2014 to 2023, BSol", x = "") +
+  labs( y = "Average Yearly Deaths, 2014 to 2023, BSol", x = "", fill = "Age Group") +
   coord_flip() +
   theme_bw() +
   scale_y_continuous(
@@ -146,159 +151,24 @@ AgeDeathsSubGroupPlot <- ggplot(data= AgeDeathsSubGroup, aes(x = `ICD10 Short Ti
   facet_col(facets = vars(group),
             scales = "free_y",
             space = "free") +
-  labs(fill = "Age Group") +
-  scale_fill_viridis(discrete = TRUE, option = "magma")
+  scale_fill_viridis(discrete = TRUE, option = "magma", begin = 0.2, end = 0.9)
 
 AgeDeathsSubGroupPlot
 
-ggsave("../output/BSOLAgeDeathsSubGroupPlot.png", AgeDeathsSubGroupPlot, width = 10, height= 12)
-
-##################               ####################
-##### deaths and YLL plots by IMD
-################              ###############
-
-BSol$IMD_quintile <- as.factor(BSol$IMD_quintile)
-
-# Average Yearly Total YLL and Deaths Per ICD10 subgroup by IMD quintile
-IMDDeathsSubGroup <- BSol %>%
-  group_by(`ICD10 Short Title`, `group`, `IMD_quintile`) %>%
-  summarise(`Deaths` = sum(`No of Deaths`)/10,
-            `YLL` = sum(YLL)/10)
-#plot deaths
-IMDDeathsPlot <- ggplot(data= IMDDeathsSubGroup, aes(x = `ICD10 Short Title`, y = Deaths, fill = IMD_quintile)) +
-  geom_bar(position = "stack", stat= "identity") +
-  labs( y = "Average Yearly Deaths, 2014 to 2023, BSol", x = "") +
-  coord_flip() +
-  theme_bw() +
-  scale_y_continuous(
-    expand = c(0, 0), limits = c(0, 750)) +
-  facet_col(facets = vars(group),
-            scales = "free_y",
-            space = "free") +
-  labs(fill = "IMD Quintile") +
-  scale_fill_viridis(discrete = TRUE, option = "magma")
-
-IMDDeathsPlot
-
-ggsave("../output/IMDDeathsSubGroupPlot.png", IMDDeathsPlot, width = 10, height= 12)
-
-#plot YLL
-IMDYLLPlot <- ggplot(data= IMDDeathsSubGroup, aes(x = `ICD10 Short Title`, y = YLL, fill = IMD_quintile)) +
-  geom_bar(position = "stack", stat= "identity") +
-  labs( y = "Average Yearly YLL, 2014 to 2023, BSol", x = "") +
-  coord_flip() +
-  theme_bw() +
-  scale_y_continuous(
-    expand = c(0, 0), limits = c(0, 3500)) +
-  facet_col(facets = vars(group),
-            scales = "free_y",
-            space = "free") +
-  labs(fill = "IMD Quintile") +
-  scale_fill_viridis(discrete = TRUE, option = "magma")
-
-IMDYLLPlot
-
-ggsave("../output/IMDYLLSubGroupPlot.png", IMDYLLPlot, width = 10, height= 12)
-
-##################               ####################
-##### Locality deaths and YLL plots
-################              ###############
-
-# Average Yearly Total Per ICD10 subgroup
-LocalityDeathsSubGroup <- BSol %>%
-  group_by(`ICD10 Short Title`, `group`, `Locality`) %>%
-  summarise(`Deaths` = sum(`No of Deaths`)/10,
-            `YLL` = sum(YLL)/10)
-#plot
-LocalityDeathsPlot <- ggplot(data= LocalityDeathsSubGroup, aes(x = `ICD10 Short Title`, y = Deaths, fill = Locality)) +
-  geom_bar(position = "stack", stat= "identity") +
-  labs( y = "Average Yearly Deaths, 2014 to 2023, BSol", x = "") +
-  coord_flip() +
-  theme_bw() +
-  scale_y_continuous(
-    expand = c(0, 0), limits = c(0, 750)) +
-  facet_col(facets = vars(group),
-            scales = "free_y",
-            space = "free") +
-  labs(fill = "Locality") +
-  scale_fill_viridis(discrete = TRUE, option = "magma")
-
-LocalityDeathsPlot
-
-ggsave("../output/LocalityDeathsSubGroupPlot.png", LocalityDeathsPlot, width = 10, height= 12)
+ggsave("../output/Deaths_Age.png", AgeDeathsSubGroupPlot, width = 10, height= 12)
 
 
-#plot YLL
-LocalityYLLPlot <- ggplot(data= LocalityDeathsSubGroup, aes(x = `ICD10 Short Title`, y = YLL, fill = Locality)) +
-  geom_bar(position = "stack", stat= "identity") +
-  labs( y = "Average Yearly YLL, 2014 to 2023, BSol", x = "") +
-  coord_flip() +
-  theme_bw() +
-  scale_y_continuous(
-    expand = c(0, 0), limits = c(0, 3500)) +
-  facet_col(facets = vars(group),
-            scales = "free_y",
-            space = "free") +
-  labs(fill = "Locality") +
-  scale_fill_viridis(discrete = TRUE, option = "magma")
 
-LocalityYLLPlot
-
-ggsave("../output/LocalityYLLSubGroupPlot.png", LocalityYLLPlot, width = 10, height= 12)
-
-
-##################               ####################
-##### Sex YLL and deaths plots
-################              ###############
-BSol$SEX <- factor(BSol$SEX, levels = c(1, 2), labels = c("Male", "Female"))
-
-# Average Yearly Total Per ICD10 subgroup
-SexDeathsSubGroup <- BSol %>%
-  group_by(`ICD10 Short Title`, `group`, `SEX`) %>%
-  summarise(`Deaths` = sum(`No of Deaths`)/10,
-            `YLL` = sum(YLL)/10)
-
-#plot
-SexDeathsPlot <- ggplot(data= SexDeathsSubGroup, aes(x = `ICD10 Short Title`, y = Deaths, fill = SEX)) +
-  geom_bar(position = "stack", stat= "identity") +
-  labs( y = "Average Yearly Deaths, 2014 to 2023, BSol", x = "") +
-  coord_flip() +
-  theme_bw() +
-  scale_y_continuous(
-    expand = c(0, 0), limits = c(0, 750)) +
-  facet_col(facets = vars(group),
-            scales = "free_y",
-            space = "free") +
-  labs(fill = "Sex") +
-  scale_fill_viridis(discrete = TRUE, option = "viridis")
-
-
-SexDeathsPlot
-
-ggsave("../output/SexDeathsSubGroupsPlot.png", SexDeathsPlot, width = 10, height= 12)
-
-#plot YLL
-SexYLLPlot <- ggplot(data= SexDeathsSubGroup, aes(x = `ICD10 Short Title`, y = YLL, fill = SEX)) +
-  geom_bar(position = "stack", stat= "identity") +
-  labs( y = "Average Yearly YLL, 2014 to 2023, BSol", x = "") +
-  coord_flip() +
-  theme_bw() +
-  scale_y_continuous(
-    expand = c(0, 0), limits = c(0, 3500)) +
-  facet_col(facets = vars(group),
-            scales = "free_y",
-            space = "free") +
-  labs(fill = "Sex") +
-  scale_fill_viridis(discrete = TRUE, option = "viridis")
-
-SexYLLPlot
-
-ggsave("../output/SexYLLSubGroupPlot.png", SexYLLPlot, width = 10, height= 12)
-
-######### Loop to simplify making of above plots ########################################
+######### Loop to plot YLL and deaths by sex, imd and locality ########################################
 
 characteristics <- c("SEX", "Locality", 'IMD_quintile')
 outcomes <- c("Deaths", "YLL")
+
+legend_titles = list(
+  "SEX" = "Sex",
+  "IMD_quintile" = "IMD Quintile",
+  "Locality" = "Locality"
+)
 
 for(outcome in outcomes) {
   for (characteristic in characteristics) {
@@ -324,7 +194,7 @@ for(outcome in outcomes) {
 
     plot_i <- ggplot(data= data_i, aes(x = `ICD10 Short Title`, y = .data[[outcome]], fill = .data[[characteristic]])) +
       geom_bar(position = "stack", stat= "identity") +
-      labs( y = paste("Average Yearly", outcome, "2014 to 2023,", "by", characteristic), x = "") +
+      labs(y = paste("Average Yearly", outcome, "2014 to 2023, BSol,", "by", legend_titles[[characteristic]]), x = "", fill = legend_titles[[characteristic]]) +
       coord_flip() +
       theme_bw() +
       scale_y_continuous(
@@ -332,7 +202,8 @@ for(outcome in outcomes) {
       facet_col(facets = vars(group),
                 scales = "free_y",
                 space = "free") +
-      scale_fill_viridis(discrete = TRUE, option = "magma")
+      scale_fill_viridis(discrete = TRUE, option = "magma", begin = 0.25, end = 0.85)
 
-    ggsave(paste("../output/", outcome, "_", characteristic, ".png", sep = ""), plot_i, width = 9, height= 12) }
+    ggsave(paste("../output/", outcome, "_", characteristic, ".png", sep = ""), plot_i, width = 10, height= 12) }
 }
+
