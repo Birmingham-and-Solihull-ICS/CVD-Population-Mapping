@@ -4,6 +4,7 @@ library(ggplot2)
 library(ggforce)
 library(viridis)
 library(rlang)
+library(writexl)
 
 ## Load Birmingham and Solihull data
 file_path_bham = file.path("//svwvap1126.addm.ads.brm.pri",
@@ -89,7 +90,7 @@ BSol <- left_join(BSol, ICD10Listing, by= "icd_subgroup")
 # check if any subgroups missing
 any(is.na(BSol$`ICD10 Short Title`))
 
-# create Local Authority Name column #
+# create Local Authority name column #
 
 BSol <- BSol %>%
   mutate(LocalAuthority = case_when (`LOCAL AUTHORITY CODE OF USUAL RESIDENCE OF DECEASED` == 'E08000025' ~ 'Birmingham',
@@ -140,6 +141,8 @@ AgeDeathsSubGroup <- BSol %>%
   group_by(`ICD10 Short Title`, `group`, `AgeGroup`) %>%
   summarise(`Deaths` = sum(`No of Deaths`)/10)
 
+write_xlsx(AgeDeathsSubGroup, "../output/Deaths_by_Age.xlsx")
+
 #plot
 AgeDeathsSubGroupPlot <- ggplot(data= AgeDeathsSubGroup, aes(x = `ICD10 Short Title`, y = Deaths, fill = AgeGroup)) +
   geom_bar(position = "stack", stat= "identity") +
@@ -156,7 +159,6 @@ AgeDeathsSubGroupPlot <- ggplot(data= AgeDeathsSubGroup, aes(x = `ICD10 Short Ti
 AgeDeathsSubGroupPlot
 
 ggsave("../output/Deaths_Age.png", AgeDeathsSubGroupPlot, width = 10, height= 12)
-
 
 
 ######### Loop to plot YLL and deaths by sex, imd and locality ########################################
@@ -192,6 +194,8 @@ for(outcome in outcomes) {
       pull(total) %>%
       max()
 
+    write_xlsx(data_i, paste("../output/Deaths_YLL_by_", characteristic, ".xlsx", sep = ""))
+
     plot_i <- ggplot(data= data_i, aes(x = `ICD10 Short Title`, y = .data[[outcome]], fill = .data[[characteristic]])) +
       geom_bar(position = "stack", stat= "identity") +
       labs(y = paste("Average Yearly", outcome, "2014 to 2023, BSol,", "by", legend_titles[[characteristic]]), x = "", fill = legend_titles[[characteristic]]) +
@@ -205,5 +209,7 @@ for(outcome in outcomes) {
       scale_fill_viridis(discrete = TRUE, option = "magma", begin = 0.25, end = 0.85)
 
     ggsave(paste("../output/", outcome, "_", characteristic, ".png", sep = ""), plot_i, width = 10, height= 12) }
+
 }
+
 
