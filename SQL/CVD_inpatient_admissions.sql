@@ -35,7 +35,7 @@ DistinctAdmissions AS (
 		Gender,
 		AgeOnAdmission,
 		AdmissionDate,
-        ROW_NUMBER() OVER (PARTITION BY NHSNumber, DiagnosisGroup, ORDER BY AdmissionDate) AS RN
+        ROW_NUMBER() OVER (PARTITION BY NHSNumber, DiagnosisGroup ORDER BY AdmissionDate) AS RN
     FROM
         AllData
 ),
