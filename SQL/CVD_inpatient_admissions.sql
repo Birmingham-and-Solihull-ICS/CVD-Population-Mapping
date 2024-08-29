@@ -2,9 +2,12 @@
 WITH AllData AS (
 	SELECT
 		NHSNumber,
-		DiagnosisCode,
-		OSLAUA,
+		SUBSTRING(DiagnosisCode, 1, 3) AS DiagnosisGroup,
+		OSLAUA AS LocalAuthority,
 		WestminsterParliamentaryConstituency AS Constituency,
+		EthnicCategoryCodeDescription AS Ethnicity,
+		GenderDescription AS Gender,
+		AgeOnAdmission,
 		AdmissionDate
 	  FROM EAT_Reporting_BSOL.SUS.VwInpatientEpisodesDiagnosisRelational AS A
 	  LEFT JOIN EAT_Reporting_BSOL.SUS.VwInpatientEpisodesPatientGeography AS B
@@ -25,11 +28,14 @@ WITH AllData AS (
 DistinctAdmissions AS (
     SELECT
         NHSNumber,
-		DiagnosisCode,
-		OSLAUA,
+		DiagnosisGroup,
+		LocalAuthority,
 		Constituency,
+		Ethnicity,
+		Gender,
+		AgeOnAdmission,
 		AdmissionDate,
-        ROW_NUMBER() OVER (PARTITION BY NHSNumber, DiagnosisCode, OSLAUA, Constituency ORDER BY AdmissionDate) AS RN
+        ROW_NUMBER() OVER (PARTITION BY NHSNumber, DiagnosisGroup, ORDER BY AdmissionDate) AS RN
     FROM
         AllData
 ),
@@ -37,16 +43,19 @@ DistinctAdmissions AS (
 FilteredAdmissions AS (
     SELECT
         A.NHSNumber,
-		A.DiagnosisCode,
-		A.OSLAUA,
+		A.DiagnosisGroup,
+		A.LocalAuthority,
 		A.Constituency,
+		A.Ethnicity,
+		A.Gender,
+		A.AgeOnAdmission,
 		A.AdmissionDate
     FROM
         DistinctAdmissions A
     LEFT JOIN DistinctAdmissions B
 	-- Join to next date with same person and admission code with within 90 days
     ON A.NHSNumber = B.NHSNumber
-    AND A.DiagnosisCode = B.DiagnosisCode
+    AND A.DiagnosisGroup = B.DiagnosisGroup
     AND A.RN = B.RN + 1
     AND A.AdmissionDate <= DATEADD(DAY, 90, B.AdmissionDate)
 	-- And then get rid of any rows that successfully joined
