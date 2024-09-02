@@ -17,6 +17,8 @@ WITH AllData AS (
 	    DiagnosisCode LIKE 'I%' AND
 	    -- Primary diagnosis
 		DiagnosisOrder = 1 AND
+		-- Only get one row per spell
+		OrderInSpell = 1 AND
 		-- Last 6 years --
 		AdmissionDate >= '2018-04-01' AND
 		AdmissionDate < '2024-04-01' AND
@@ -49,7 +51,8 @@ FilteredAdmissions AS (
 		A.Ethnicity,
 		A.Gender,
 		A.AgeOnAdmission,
-		A.AdmissionDate
+		A.AdmissionDate,
+		A.RN
     FROM
         DistinctAdmissions A
     LEFT JOIN DistinctAdmissions B
@@ -64,3 +67,4 @@ FilteredAdmissions AS (
 
 SELECT *
 FROM FilteredAdmissions
+ORDER BY NHSNumber
