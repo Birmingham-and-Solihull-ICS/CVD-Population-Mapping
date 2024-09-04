@@ -8,17 +8,19 @@ WITH AllData AS (
 		EthnicCategoryCodeDescription AS Ethnicity,
 		GenderDescription AS Gender,
 		AgeOnAdmission,
-		AdmissionDate
+		AdmissionDate,
+		LowerlayerSuperOutputArea2011 AS LSOA11,
+	    LowerLayerSuperOutputArea AS LSOA21
 	  FROM EAT_Reporting_BSOL.SUS.VwInpatientEpisodesDiagnosisRelational AS A
 	  LEFT JOIN EAT_Reporting_BSOL.SUS.VwInpatientEpisodesPatientGeography AS B
 	  ON A.EpisodeId = B.EpisodeId
 	  WHERE 
 	    -- CVD ICD-10 Code
 	    DiagnosisCode LIKE 'I%' AND
-	    -- Primary diagnosis
-		DiagnosisOrder = 1 AND
 		-- Only get one row per spell
 		OrderInSpell = 1 AND
+	    -- Primary diagnosis
+		DiagnosisOrder = 1 AND
 		-- Last 6 years --
 		AdmissionDate >= '2018-04-01' AND
 		AdmissionDate < '2024-04-01' AND
@@ -36,6 +38,8 @@ DistinctAdmissions AS (
 		Ethnicity,
 		Gender,
 		AgeOnAdmission,
+		LSOA11,
+		LSOA21,
 		AdmissionDate,
         ROW_NUMBER() OVER (PARTITION BY NHSNumber, DiagnosisGroup ORDER BY AdmissionDate) AS RN
     FROM
@@ -51,8 +55,9 @@ FilteredAdmissions AS (
 		A.Ethnicity,
 		A.Gender,
 		A.AgeOnAdmission,
-		A.AdmissionDate,
-		A.RN
+		A.LSOA11,
+		A.LSOA21,
+		A.AdmissionDate
     FROM
         DistinctAdmissions A
     LEFT JOIN DistinctAdmissions B
