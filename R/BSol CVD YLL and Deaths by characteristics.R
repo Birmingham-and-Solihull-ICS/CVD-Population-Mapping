@@ -198,7 +198,7 @@ for(outcome in outcomes) {
 
     plot_i <- ggplot(data= data_i, aes(x = `ICD10 Short Title`, y = .data[[outcome]], fill = .data[[characteristic]])) +
       geom_bar(position = "stack", stat= "identity") +
-      labs(y = paste("Average Yearly", outcome, "2014 to 2023, BSol,", "by", legend_titles[[characteristic]]), x = "", fill = legend_titles[[characteristic]]) +
+      labs(y = paste("Average Yearly", outcome, "(Primary Cause), 2014 to 2023, BSol,", "by", legend_titles[[characteristic]]), x = "", fill = legend_titles[[characteristic]]) +
       coord_flip() +
       theme_bw() +
       scale_y_continuous(

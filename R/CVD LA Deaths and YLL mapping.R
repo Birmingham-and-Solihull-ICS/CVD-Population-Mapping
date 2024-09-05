@@ -3,6 +3,7 @@ library(dplyr)
 library(ggplot2)
 library(ggforce)
 library(viridis)
+library(writexl)
 
 ## Load Birmingham and Solihull data
 file_path_bham = file.path("//svwvap1126.addm.ads.brm.pri",
@@ -128,9 +129,12 @@ for (outcome in outcomes) {
       area = LA_filter[[1]]
     }
 
+    write_xlsx(data_i, paste("../output/Deaths_YLL_", area, ".xlsx", sep = ""))
+
+
     plot_i <- ggplot(data= data_i, aes(x = `ICD10 Short Title`, y = .data[[outcome]])) +
       geom_col(fill="#3488a6") +
-      labs( y = paste("Average Yearly", outcome, "2014 to 2023,", area), x = "") +
+      labs( y = paste("Average Yearly", outcome, "(Primary Cause), 2014 to 2023,", area), x = "") +
       coord_flip() +
       theme_bw() +
       geom_text(aes(label = .data[[outcome]]), colour = "black", size = 3, hjust = -0.2) +
@@ -144,3 +148,12 @@ for (outcome in outcomes) {
 
   }
 }
+
+## Percentage of deaths by ICD10 group
+PercentageDeaths <- BSol %>%
+  group_by(group) %>%
+  summarise(`Deaths` = sum(`No of Deaths`)) %>%
+  mutate(TotalDeaths = sum(Deaths),
+         PercentageDeaths = Deaths/TotalDeaths *100)
+
+write_xlsx(PercentageDeaths, "../output/PercentageDeaths10Years.xlsx")
