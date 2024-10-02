@@ -117,7 +117,7 @@ for (LA_filter in LA_filters) {
       area = LA_filter[[1]]
     }
 
-    write_xlsx(data_i, paste("../output/Hospitalisations/Tables/Hospitalisations_", area, ".xlsx", sep = ""))
+    write_xlsx(data_i, paste("../output/PrimaryCause/Hospitalisations/Tables/PrimaryCause_Hospitalisations_", area, ".xlsx", sep = ""))
 
     plot_i <- ggplot(data= data_i, aes(x = `ICD10 Short Title`, y = Hospitalisations)) +
       geom_col(fill="#3488a6") +
@@ -131,17 +131,12 @@ for (LA_filter in LA_filters) {
                 scales = "free_y",
                 space = "free")
 
-    ggsave(paste("../output/Hospitalisations/Hospitalisations_", area, ".png", sep = ""), plot_i, width = 9, height= 12)
+    ggsave(paste("../output/PrimaryCause/Hospitalisations/PrimaryCause_Hospitalisations_", area, ".png", sep = ""), plot_i, width = 9, height= 12)
 
 }
 
 
-######### Loop to plot hospitalizations by age, sex, imd, ethnicity and locality ########################################
-
-############################
-### ADD ETHNICITY ONCE DATASET CORRECTED #######################
-################################
-
+######### Loop to plot hospitalizations by age, sex, imd and locality ########################################
 
 characteristics <- c('Locality', 'IMD_quintile', 'AgeGroup', 'Gender')
 
@@ -166,7 +161,7 @@ for(characteristic in characteristics) {
     pull(total) %>%
     max()
 
-    write_xlsx(data_i, paste("../output/Hospitalisations/Tables/Hospitalisations_by_", characteristic, ".xlsx", sep = ""))
+    write_xlsx(data_i, paste("../output/PrimaryCause/Hospitalisations/Tables/PrimaryCause_Hospitalisations_BSol_by_", characteristic, ".xlsx", sep = ""))
 
     plot_i <- ggplot(data= data_i, aes(x = `ICD10 Short Title`, y = Hospitalisations, fill = .data[[characteristic]])) +
       geom_bar(position = "stack", stat= "identity") +
@@ -180,13 +175,13 @@ for(characteristic in characteristics) {
                 space = "free") +
       scale_fill_viridis(discrete = TRUE, option = "magma", begin = 0.15, end = 0.95)
 
-    ggsave(paste("../output/Hospitalisations/Hospitalisations_by_", characteristic, ".png", sep = ""), plot_i, width = 10, height= 12)
+    ggsave(paste("../output/PrimaryCause/Hospitalisations/PrimaryCause_Hospitalisations_BSol_by_", characteristic, ".png", sep = ""), plot_i, width = 10, height= 12)
     }
 
-############ comparison to hospitalizations  ##################
+############ comparison to deaths  ##################
 
 # load percentage deaths
-PercentageDeaths <- read_excel("../output/PercentageDeaths10Years.xlsx")
+PercentageDeaths <- read_excel("../output/PrimaryCause/PercentageDeaths10Years.xlsx")
 
 PercentageHospitalisations <- BSol %>%
   group_by(group) %>%
@@ -210,7 +205,7 @@ df_long <- DeathsHospitalisation %>%
 df_long$Outcome <- recode(df_long$Outcome, "PercentageHospitalisations" = "Hospitalisations", "PercentageDeaths" = "Deaths")
 
 # save output
-write_xlsx(df_long, "../output/Hospitalisations/Tables/PercentageHospitalisationsAndDeaths.xlsx")
+write_xlsx(df_long, "../output/PrimaryCause/PrimaryCause_PercentageHospitalisationsAndDeaths.xlsx")
 
 # Wrap the text of the Condition labels
 df_long$group <- str_wrap(df_long$group, width = 25)
@@ -225,7 +220,7 @@ HospVsDeaths <- ggplot(df_long, aes(x = group, y = Percentage, fill = Outcome)) 
   facet_col(facets = vars(Outcome),
             scales = "free_y",
             space = "free") +
-  labs(title = "Percentage of Hospitalisations (2018 to 2024) and Deaths (2014 to 2023) by ICD10 Condition Group, BSol",
+  labs(title = "Percentage of Hospitalisations (2018 to 2024) and Deaths (2014 to 2023) by ICD10 Condition Group, Primary Cause, BSol",
        x = "ICD10 Group",
        y = "Percentage",
        fill = "Outcome")  +
@@ -236,13 +231,13 @@ HospVsDeaths <- ggplot(df_long, aes(x = group, y = Percentage, fill = Outcome)) 
 
 HospVsDeaths
 
-ggsave("../output/Hospitalisations/Hospitalisations_vs_Deaths.png", HospVsDeaths, width = 10, height= 12)
+ggsave("../output/PrimaryCause/PrimaryCause_Hospitalisations_vs_Deaths_BSol.png", HospVsDeaths, width = 10, height= 12)
 
 ## plot as stacked bar
 
 stackedHospVsDeaths <- ggplot(df_long, aes(x = Outcome, y = Percentage, fill = group)) +
   geom_bar(position = "stack", stat = "identity") +
-  labs(title = "Percentage of Hospitalisations (2018 to 2024) and Deaths (2014 to 2023) by ICD10 Condition Group, BSol",
+  labs(title = "Percentage of Hospitalisations (2018 to 2024) and Deaths (2014 to 2023) by ICD10 Condition Group, Primary Cause, BSol",
        y = "Percentage of Total",
        fill = "ICD10 Group") +
   theme_bw() +
@@ -254,13 +249,13 @@ stackedHospVsDeaths <- ggplot(df_long, aes(x = Outcome, y = Percentage, fill = g
 
 stackedHospVsDeaths
 
-ggsave("../output/Hospitalisations/stacked_Hospitalisations_vs_Deaths.png", stackedHospVsDeaths, width = 8, height= 10)
+ggsave("../output/PrimaryCause/PrimaryCause_stacked_Hospitalisations_vs_Deaths_BSol.png", stackedHospVsDeaths, width = 8, height= 10)
 
 #### Yearly number of deaths vs yearly number of hospitalizations scatter plot #####################################
 
 # load data
-YearlyHospitalisations <- read_excel("../output/Hospitalisations/Tables/Hospitalisations_BSol.xlsx")
-YearlyDeaths <- read_excel("../output/Deaths_YLL_BSol.xlsx")
+YearlyHospitalisations <- read_excel("../output/PrimaryCause/Hospitalisations/Tables/PrimaryCause_Hospitalisations_BSol.xlsx")
+YearlyDeaths <- read_excel("../output/PrimaryCause/Deaths/Tables/PrimaryCause_Deaths_YLL_BSol.xlsx")
 
 YearlyDeaths <- YearlyDeaths %>% select(-group)
 
@@ -285,4 +280,4 @@ plot <- ggplot(YearlyDeathsHospitalisation,
 
 plot <- ggplotly(plot)
 
-htmlwidgets::saveWidget(plot, file="../output/Hospitalisations_vs_Deaths_Scatter.html")
+htmlwidgets::saveWidget(plot, file="../output/PrimaryCause/PrimaryCause_Hospitalisations_vs_Deaths_Scatter.html")

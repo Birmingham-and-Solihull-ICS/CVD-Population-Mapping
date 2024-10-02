@@ -141,12 +141,12 @@ AgeDeathsSubGroup <- BSol %>%
   group_by(`ICD10 Short Title`, `group`, `AgeGroup`) %>%
   summarise(`Deaths` = sum(`No of Deaths`)/10)
 
-write_xlsx(AgeDeathsSubGroup, "../output/Deaths_by_Age.xlsx")
+write_xlsx(AgeDeathsSubGroup, "../output/PrimaryCause/Deaths/Tables/PrimaryCause_Deaths_BSol_by_Age.xlsx")
 
 #plot
 AgeDeathsSubGroupPlot <- ggplot(data= AgeDeathsSubGroup, aes(x = `ICD10 Short Title`, y = Deaths, fill = AgeGroup)) +
   geom_bar(position = "stack", stat= "identity") +
-  labs( y = "Average Yearly Deaths, 2014 to 2023, BSol", x = "", fill = "Age Group") +
+  labs( y = "Average Yearly Deaths (Primary Cause), 2014 to 2023, BSol, by Age", x = "", fill = "Age Group") +
   coord_flip() +
   theme_bw() +
   scale_y_continuous(
@@ -158,7 +158,7 @@ AgeDeathsSubGroupPlot <- ggplot(data= AgeDeathsSubGroup, aes(x = `ICD10 Short Ti
 
 AgeDeathsSubGroupPlot
 
-ggsave("../output/Deaths_Age.png", AgeDeathsSubGroupPlot, width = 10, height= 12)
+ggsave("../output/PrimaryCause/Deaths/PrimaryCause_Deaths_BSol_Age.png", AgeDeathsSubGroupPlot, width = 10, height= 12)
 
 
 ######### Loop to plot YLL and deaths by sex, imd and locality ########################################
@@ -194,7 +194,7 @@ for(outcome in outcomes) {
       pull(total) %>%
       max()
 
-    write_xlsx(data_i, paste("../output/Deaths_YLL_by_", characteristic, ".xlsx", sep = ""))
+    write_xlsx(data_i, paste("../output/PrimaryCause/Deaths/Tables/PrimaryCause_Deaths_YLL_BSol_by_", characteristic, ".xlsx", sep = ""))
 
     plot_i <- ggplot(data= data_i, aes(x = `ICD10 Short Title`, y = .data[[outcome]], fill = .data[[characteristic]])) +
       geom_bar(position = "stack", stat= "identity") +
@@ -208,7 +208,7 @@ for(outcome in outcomes) {
                 space = "free") +
       scale_fill_viridis(discrete = TRUE, option = "magma", begin = 0.25, end = 0.85)
 
-    ggsave(paste("../output/", outcome, "_", characteristic, ".png", sep = ""), plot_i, width = 10, height= 12) }
+    ggsave(paste("../output/PrimaryCause/Deaths/PrimaryCause_", outcome, "_BSol_", characteristic, ".png", sep = ""), plot_i, width = 10, height= 12) }
 
 }
 

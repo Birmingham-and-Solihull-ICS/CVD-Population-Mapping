@@ -129,7 +129,7 @@ for (outcome in outcomes) {
       area = LA_filter[[1]]
     }
 
-    write_xlsx(data_i, paste("../output/Deaths_YLL_", area, ".xlsx", sep = ""))
+    write_xlsx(data_i, paste("../output/PrimaryCause/Deaths/Tables/PrimaryCause_Deaths_YLL_", area, ".xlsx", sep = ""))
 
 
     plot_i <- ggplot(data= data_i, aes(x = `ICD10 Short Title`, y = .data[[outcome]])) +
@@ -139,12 +139,12 @@ for (outcome in outcomes) {
       theme_bw() +
       geom_text(aes(label = .data[[outcome]]), colour = "black", size = 3, hjust = -0.2) +
       scale_y_continuous(
-        expand = c(0, 0), limits = c(0, 1.1*max(data_i[[outcome]]))) +
+        expand = c(0, 0), limits = c(0, 1.11*max(data_i[[outcome]]))) +
       facet_col(facets = vars(group),
                 scales = "free_y",
                 space = "free")
 
-    ggsave(paste("../output/", outcome, "_", area, ".png", sep = ""), plot_i, width = 9, height= 12)
+    ggsave(paste("../output/PrimaryCause/Deaths/PrimaryCause_", outcome, "_", area, ".png", sep = ""), plot_i, width = 9, height= 12)
 
   }
 }
@@ -156,4 +156,4 @@ PercentageDeaths <- BSol %>%
   mutate(TotalDeaths = sum(Deaths),
          PercentageDeaths = Deaths/TotalDeaths *100)
 
-write_xlsx(PercentageDeaths, "../output/PercentageDeaths10Years.xlsx")
+write_xlsx(PercentageDeaths, "../output/PrimaryCause/PercentageDeaths10Years.xlsx")

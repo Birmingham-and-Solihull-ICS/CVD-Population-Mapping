@@ -18,11 +18,56 @@ file_path_bham = file.path("//svwvap1126.addm.ads.brm.pri",
 
 BhamData <- read_excel(file_path_bham)
 
+# Load Solihull data
+file_path_solihull = file.path("//svwvap1126.addm.ads.brm.pri",
+                               "PHSensitive$",
+                               "Intelligence",
+                               "2. Requests",
+                               "REQ3289 - BSol ICB CVD Project",
+                               "20240925_Solihull_CVD_Deaths_AllCause.xlsx",
+                               fsep="/")
+
+SolihullData <- read_excel(file_path_solihull)
+
+## remove unneeded columns from Birmingham dataframe
+colnames(BhamData)
+colnames(SolihullData)
+
+BhamData <- subset(BhamData, select = -c(MonthText, Analysis, `DATE OF DEATH OF DECEASED`))
+
+## remove unneeded columns from Solihull dataframe
+SolihullData <- subset(SolihullData, select = -c(CCG_OF_REGISTRATION_CODE, DATE_OF_DEATH))
+
+# rename solihull columns to match Birmingham
+SolihullData <- SolihullData %>%
+  rename(`LOCAL AUTHORITY CODE OF USUAL RESIDENCE OF DECEASED` = `ULA_OF_RESIDENCE_CODE`,
+         `UNDERLYING CAUSE OF DEATH CODE` = UNDERLYING_CAUSE_OF_DEATH,
+         `SEX` = sex,
+         `AgeInYears` = Age,
+         `LOWER SOA CODE OF USUAL RESIDENCE OF DECEASED` = LSOA_OF_RESIDENCE_CODE,
+         `CAUSES1 OF DEATH MENTIONED ON DEATH CERTIFICATE` = `CAUSE_OF_DEATH_ICD_CODE_1`,
+         `CAUSES2 OF DEATH MENTIONED ON DEATH CERTIFICATE` = `CAUSE_OF_DEATH_ICD_CODE_2`,
+         `CAUSES3 OF DEATH MENTIONED ON DEATH CERTIFICATE` = `CAUSE_OF_DEATH_ICD_CODE_3`,
+         `CAUSES4 OF DEATH MENTIONED ON DEATH CERTIFICATE` = `CAUSE_OF_DEATH_ICD_CODE_4`,
+         `CAUSES5 OF DEATH MENTIONED ON DEATH CERTIFICATE` = `CAUSE_OF_DEATH_ICD_CODE_5`,
+         `CAUSES6 OF DEATH MENTIONED ON DEATH CERTIFICATE` = `CAUSE_OF_DEATH_ICD_CODE_6`,
+         `CAUSES7 OF DEATH MENTIONED ON DEATH CERTIFICATE` = `CAUSE_OF_DEATH_ICD_CODE_7`,
+         `CAUSES8 OF DEATH MENTIONED ON DEATH CERTIFICATE` = `CAUSE_OF_DEATH_ICD_CODE_8`)
+
+# join data frames to create BSol data frame
+BSol <- rbind(BhamData, SolihullData)
+
+
+# create Local Authority name column #
+BSol <- BSol %>%
+  mutate(LocalAuthority = case_when (`LOCAL AUTHORITY CODE OF USUAL RESIDENCE OF DECEASED` == 'E08000025' ~ 'Birmingham',
+                                     `LOCAL AUTHORITY CODE OF USUAL RESIDENCE OF DECEASED` == 'E08000029' ~ 'Solihull'))
+
 # create an ID column (needed to remove duplicate ICD10 subgroups for one individual)
-BhamData$index <- 1:nrow(BhamData)
+BSol$index <- 1:nrow(BSol)
 
 # pivot longer so each cause code is one row
-death_pivot <- BhamData %>%
+death_pivot <- BSol %>%
   pivot_longer(
     cols = contains("CAUSE"),
     names_to='Cause Number',
@@ -103,13 +148,25 @@ sum(is.na(death_pivot$`ICD10 Short Title`))
 cvd <- filter(death_pivot, grepl("^I", `icd_subgroup`)) # create data frame with just cvd ICD10 subgroups (i.e, code ICD10 code starts with I)
 sum(is.na(cvd$`ICD10 Short Title`)) # 0 missing values
 
-####### Loop to calculate average yearly CVD death count & YLL for Birmingham ############
+#################################           ####################################
+####### Loop to calculate average yearly CVD death count & YLL for Birmingham, Solihull and BSol ############
+##########################          ####################################
+
+LA_filters <- list(
+  c("Birmingham"),
+  c("Solihull"),
+  c("Birmingham", "Solihull")
+)
 
 outcomes <- c("Deaths", "YLL")
 
 for (outcome in outcomes) {
+  for (LA_filter in LA_filters) {
 
-  data_i <- cvd %>%
+    data_i <- cvd %>%
+      filter(
+        LocalAuthority %in% LA_filter
+      ) %>%
       mutate(
         YLL = case_when(
           AgeInYears < 75 ~ (74.5 - AgeInYears),
@@ -120,12 +177,18 @@ for (outcome in outcomes) {
       summarise(`Deaths` = n()/10,
                 `YLL` = sum(YLL)/10)
 
-    write_xlsx(data_i, paste("../output/AllCause/Deaths/Tables/Deaths_YLL_AllCause_Birmingham.xlsx"))
+    if(length(LA_filter) == 2) {
+      area = "BSol"
+    } else {
+      area = LA_filter[[1]]
+    }
+
+    write_xlsx(data_i, paste("../output/AllCause/Deaths/Tables/Deaths_YLL_AllCause_", area, ".xlsx", sep = ""))
 
 
     plot_i <- ggplot(data= data_i, aes(x = `ICD10 Short Title`, y = .data[[outcome]])) +
       geom_col(fill="#3488a6") +
-      labs( y = paste("Average Yearly", outcome, "(All Cause), 2014 to 2023, Birmingham"), x = "") +
+      labs( y = paste("Average Yearly", outcome, "(All Cause), 2014 to 2023", area), x = "") +
       coord_flip() +
       theme_bw() +
       geom_text(aes(label = .data[[outcome]]), colour = "black", size = 3, hjust = -0.2) +
@@ -135,8 +198,9 @@ for (outcome in outcomes) {
                 scales = "free_y",
                 space = "free")
 
-    ggsave(paste("../output/AllCause/Deaths/", outcome, "_AllCause_Birmingham.png", sep = ""), plot_i, width = 9, height= 12)
+    ggsave(paste("../output/AllCause/Deaths/AllCause_", outcome, "_", area, ".png", sep = ""), plot_i, width = 9, height= 12)
 
+  }
   }
 
 
@@ -148,12 +212,12 @@ AgeDeathsSubGroup <- cvd %>%
   group_by(`ICD10 Short Title`, `CVD_group`, `AgeGroup`) %>%
   summarise(`Deaths` = n()/10)
 
-write_xlsx(AgeDeathsSubGroup, "../output/AllCause/Deaths/Tables/Birmingham_Deaths_AllCause_by_Age.xlsx")
+write_xlsx(AgeDeathsSubGroup, "../output/AllCause/Deaths/Tables/BSol_Deaths_AllCause_by_Age.xlsx")
 
 #plot
 AgeDeathsSubGroupPlot <- ggplot(data= AgeDeathsSubGroup, aes(x = `ICD10 Short Title`, y = Deaths, fill = AgeGroup)) +
   geom_bar(position = "stack", stat= "identity") +
-  labs( y = "Average Yearly Deaths (All Cause), 2014 to 2023, Birmingham, by Age", x = "", fill = "Age Group") +
+  labs( y = "Average Yearly Deaths (All Cause), 2014 to 2023, BSol, by Age", x = "", fill = "Age Group") +
   coord_flip() +
   theme_bw() +
   scale_y_continuous(
@@ -165,7 +229,7 @@ AgeDeathsSubGroupPlot <- ggplot(data= AgeDeathsSubGroup, aes(x = `ICD10 Short Ti
 
 AgeDeathsSubGroupPlot
 
-ggsave("../output/AllCause/Deaths/Birmingham_AllCause_Deaths_Age.png", AgeDeathsSubGroupPlot, width = 10, height= 12)
+ggsave("../output/AllCause/Deaths/BSol_AllCause_Deaths_Age.png", AgeDeathsSubGroupPlot, width = 10, height= 12)
 
 
 ######### Loop to plot YLL and deaths by sex, imd and locality ########################################
@@ -201,11 +265,11 @@ for(outcome in outcomes) {
       pull(total) %>%
       max()
 
-    write_xlsx(data_i, paste("../output/AllCause/Deaths/Tables/Birmingham_AllCause_Deaths_YLL_by_", characteristic, ".xlsx", sep = ""))
+    write_xlsx(data_i, paste("../output/AllCause/Deaths/Tables/BSol_AllCause_Deaths_YLL_by_", characteristic, ".xlsx", sep = ""))
 
     plot_i <- ggplot(data= data_i, aes(x = `ICD10 Short Title`, y = .data[[outcome]], fill = .data[[characteristic]])) +
       geom_bar(position = "stack", stat= "identity") +
-      labs(y = paste("Average Yearly", outcome, "(All Cause), 2014 to 2023, Birmingham,", "by", legend_titles[[characteristic]]), x = "", fill = legend_titles[[characteristic]]) +
+      labs(y = paste("Average Yearly", outcome, "(All Cause), 2014 to 2023, BSol,", "by", legend_titles[[characteristic]]), x = "", fill = legend_titles[[characteristic]]) +
       coord_flip() +
       theme_bw() +
       scale_y_continuous(
@@ -215,7 +279,7 @@ for(outcome in outcomes) {
                 space = "free") +
       scale_fill_viridis(discrete = TRUE, option = "magma", begin = 0.25, end = 0.85)
 
-    ggsave(paste("../output/AllCause/Deaths/Birmingham_AllCause_", outcome, "_", characteristic, ".png", sep = ""), plot_i, width = 10, height= 12) }
+    ggsave(paste("../output/AllCause/Deaths/BSol_AllCause_", outcome, "_", characteristic, ".png", sep = ""), plot_i, width = 10, height= 12) }
 
 }
 
