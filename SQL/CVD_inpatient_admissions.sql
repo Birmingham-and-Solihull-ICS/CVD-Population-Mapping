@@ -5,22 +5,25 @@ WITH AllData AS (
 		SUBSTRING(DiagnosisCode, 1, 3) AS DiagnosisGroup,
 		OSLAUA AS LocalAuthority,
 		WestminsterParliamentaryConstituency AS Constituency,
-		EthnicCategoryCodeDescription AS Ethnicity,
+		E.[Ethnic_Code],
+	    E.[Ethnic_Grouping_PH],
 		GenderDescription AS Gender,
 		AgeOnAdmission,
 		AdmissionDate,
-		LowerlayerSuperOutputArea2011 AS LSOA11,
-	    LowerLayerSuperOutputArea AS LSOA21
+		AdmissionMethodCode,
+		AdmissionMethodDescription
 	  FROM EAT_Reporting_BSOL.SUS.VwInpatientEpisodesDiagnosisRelational AS A
 	  LEFT JOIN EAT_Reporting_BSOL.SUS.VwInpatientEpisodesPatientGeography AS B
 	  ON A.EpisodeId = B.EpisodeId
+	  LEFT JOIN [EAT_Reporting_BSOL].[Demographic].Ethnicity AS E
+	  ON [NHSNumber] = E.[Pseudo_NHS_Number]
 	  WHERE 
 	    -- CVD ICD-10 Code
 	    DiagnosisCode LIKE 'I%' AND
-		-- Only get one row per spell
-		OrderInSpell = 1 AND
 	    -- Primary diagnosis
 		DiagnosisOrder = 1 AND
+		-- Only get one row per spell
+		OrderInSpell = 1 AND
 		-- Last 6 years --
 		AdmissionDate >= '2018-04-01' AND
 		AdmissionDate < '2024-04-01' AND
@@ -35,12 +38,13 @@ DistinctAdmissions AS (
 		DiagnosisGroup,
 		LocalAuthority,
 		Constituency,
-		Ethnicity,
+		Ethnic_Code,
+	    Ethnic_Grouping_PH,
 		Gender,
 		AgeOnAdmission,
-		LSOA11,
-		LSOA21,
 		AdmissionDate,
+		AdmissionMethodCode,
+		AdmissionMethodDescription,
         ROW_NUMBER() OVER (PARTITION BY NHSNumber, DiagnosisGroup ORDER BY AdmissionDate) AS RN
     FROM
         AllData
@@ -52,12 +56,14 @@ FilteredAdmissions AS (
 		A.DiagnosisGroup,
 		A.LocalAuthority,
 		A.Constituency,
-		A.Ethnicity,
+		A.Ethnic_Code,
+	    A.Ethnic_Grouping_PH,
 		A.Gender,
 		A.AgeOnAdmission,
-		A.LSOA11,
-		A.LSOA21,
-		A.AdmissionDate
+		A.AdmissionDate,
+		A.RN,
+		A.AdmissionMethodCode,
+		A.AdmissionMethodDescription
     FROM
         DistinctAdmissions A
     LEFT JOIN DistinctAdmissions B
