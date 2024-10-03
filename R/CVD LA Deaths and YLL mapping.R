@@ -3,6 +3,7 @@ library(dplyr)
 library(ggplot2)
 library(ggforce)
 library(viridis)
+library(writexl)
 
 ## Load Birmingham and Solihull data
 file_path_bham = file.path("//svwvap1126.addm.ads.brm.pri",
@@ -128,19 +129,31 @@ for (outcome in outcomes) {
       area = LA_filter[[1]]
     }
 
+    write_xlsx(data_i, paste("../output/PrimaryCause/Deaths/Tables/PrimaryCause_Deaths_YLL_", area, ".xlsx", sep = ""))
+
+
     plot_i <- ggplot(data= data_i, aes(x = `ICD10 Short Title`, y = .data[[outcome]])) +
       geom_col(fill="#3488a6") +
-      labs( y = paste("Average Yearly", outcome, "2014 to 2023,", area), x = "") +
+      labs( y = paste("Average Yearly", outcome, "(Primary Cause), 2014 to 2023,", area), x = "") +
       coord_flip() +
       theme_bw() +
       geom_text(aes(label = .data[[outcome]]), colour = "black", size = 3, hjust = -0.2) +
       scale_y_continuous(
-        expand = c(0, 0), limits = c(0, 1.1*max(data_i[[outcome]]))) +
+        expand = c(0, 0), limits = c(0, 1.11*max(data_i[[outcome]]))) +
       facet_col(facets = vars(group),
                 scales = "free_y",
                 space = "free")
 
-    ggsave(paste("../output/", outcome, "_", area, ".png", sep = ""), plot_i, width = 9, height= 12)
+    ggsave(paste("../output/PrimaryCause/Deaths/PrimaryCause_", outcome, "_", area, ".png", sep = ""), plot_i, width = 9, height= 12)
 
   }
 }
+
+## Percentage of deaths by ICD10 group
+PercentageDeaths <- BSol %>%
+  group_by(group) %>%
+  summarise(`Deaths` = sum(`No of Deaths`)) %>%
+  mutate(TotalDeaths = sum(Deaths),
+         PercentageDeaths = Deaths/TotalDeaths *100)
+
+write_xlsx(PercentageDeaths, "../output/PrimaryCause/PercentageDeaths10Years.xlsx")
