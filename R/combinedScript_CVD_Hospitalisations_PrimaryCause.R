@@ -136,14 +136,15 @@ for (LA_filter in LA_filters) {
     labs( y = paste("Average Yearly Hospitalisations (Primary Cause) 2018 to 2024,", area), x = "") +
     coord_flip() +
     theme_bw() +
-    geom_text(aes(label = sprintf("%.2f", Hospitalisations)), colour = "black", size = 3, hjust = -0.2) +
+    geom_text(aes(label = sprintf("%.2f", Hospitalisations)), colour = "black", size = 4.5, hjust = -0.2) +
     scale_y_continuous(
       expand = c(0, 0), limits = c(0, 1.11*max(data_i$Hospitalisations))) +
     facet_col(facets = vars(`Clinical Group`),
               scales = "free_y",
-              space = "free")
+              space = "free") +
+    theme(text = element_text(size=19)) #change font size of  text
 
-  ggsave(paste("../output/Hospitalisations/PrimaryCause/ClinicalGroups/PrimaryCause_Hospitalisations_", area, ".png", sep = ""), plot_i, width = 9, height= 12)
+  ggsave(paste("../output/Hospitalisations/PrimaryCause/ClinicalGroups/PrimaryCause_Hospitalisations_", area, ".svg", sep = ""), plot_i, width = 12, height= 10)
 }
 
 ######### Loop to plot hospitalizations by age, sex, imd, locality and ethnicity ########################################
@@ -221,7 +222,7 @@ df_long$Outcome <- recode(df_long$Outcome, "PercentageHospitalisations" = "Hospi
 write_xlsx(df_long, "../output/Hospitalisations_vs_deaths/PrimaryCause/ClinicalGroups/Tables/PrimaryCause_PercentageHospitalisationsAndDeaths_BSol.xlsx")
 
 # Wrap the text of the Condition labels
-df_long$`Clinical Subgroup` <- str_wrap(df_long$`Clinical Subgroup`, width = 25)
+df_long$`Clinical Subgroup` <- str_wrap(df_long$`Clinical Subgroup`, width = 40)
 
 # Create the plot
 HospVsDeaths <- ggplot(df_long, aes(x = `Clinical Subgroup`, y = Percentage, fill = Outcome)) +
@@ -237,14 +238,15 @@ HospVsDeaths <- ggplot(df_long, aes(x = `Clinical Subgroup`, y = Percentage, fil
        x = "Clinical Subgroup",
        y = "Percentage",
        fill = "Outcome")  +
-  geom_text(aes(label = sprintf("%.2f", Percentage)), colour = "black", size = 3, hjust = -0.2) +
+  geom_text(aes(label = sprintf("%.2f", Percentage)), colour = "black", size = 4, hjust = -0.2) +
   theme(
     plot.title.position = "plot", # Make the title span the full plot width including axis labels
-    plot.title = element_text(hjust = 0.5))  # Center-align the title
+    plot.title = element_text(hjust = 0.5)) + # Center-align the title
+  theme(text = element_text(size=16)) #change font size of  text
 
 HospVsDeaths
 
-ggsave("../output/Hospitalisations_vs_deaths/PrimaryCause/ClinicalGroups/PrimaryCause_Hospitalisations_vs_Deaths_BSol.png", HospVsDeaths, width = 10, height= 12)
+ggsave("../output/Hospitalisations_vs_deaths/PrimaryCause/ClinicalGroups/PrimaryCause_Hospitalisations_vs_Deaths_BSol.svg", HospVsDeaths, width = 12, height= 10)
 
 #### Yearly number of deaths vs yearly number of hospitalizations scatter plot #####################################
 
@@ -408,14 +410,15 @@ HospVsDeaths <- ggplot(df_long, aes(x = group, y = Percentage, fill = Outcome)) 
        x = "ICD10 Group",
        y = "Percentage",
        fill = "Outcome")  +
-  geom_text(aes(label = sprintf("%.2f", Percentage)), colour = "black", size = 3, hjust = -0.2) +
+  geom_text(aes(label = sprintf("%.2f", Percentage)), colour = "black", size = 4, hjust = -0.2) +
   theme(
     plot.title.position = "plot", # Make the title span the full plot width including axis labels
-    plot.title = element_text(hjust = 0.5))  # Center-align the title
+    plot.title = element_text(hjust = 0.5)) + # Center-align the title
+  theme(text = element_text(size=16))
 
 HospVsDeaths
 
-ggsave("../output/Hospitalisations_vs_deaths/PrimaryCause/ICD10Groups/PrimaryCause_Hospitalisations_vs_Deaths_BSol.png", HospVsDeaths, width = 10, height= 12)
+ggsave("../output/Hospitalisations_vs_deaths/PrimaryCause/ICD10Groups/PrimaryCause_Hospitalisations_vs_Deaths_BSol.svg", HospVsDeaths, width = 10, height= 12)
 
 #### Yearly number of deaths vs yearly number of hospitalizations scatter plot #####################################
 

@@ -120,7 +120,7 @@ cvd <- cvd %>%
 ClinicalGroup_CVD <- cvd %>%
   filter(`Clinical Subgroup` != 'Not CVD')
 
-# clinical group data frames (taking into acount removal of `not cvd` groups)
+# clinical group data frames (taking into account removal of `not cvd` groups)
 ClinicalGroup_BSolPrimaryCVD <- ClinicalGroup_CVD %>% # Primary cause of death data frame
   filter(`Cause Number` == "S_UNDERLYING_COD_ICD10")
 ClinicalGroup_BSolAllCauseCVD <- ClinicalGroup_CVD %>% select(-one_of('Cause Number', 'ICD10 Code')) # remove cause number column and ICD10 code column
@@ -180,14 +180,15 @@ for (outcome in outcomes) {
       labs( y = paste("Average Yearly", outcome, "(Primary Cause), 2014 to 2023,", area), x = "") +
       coord_flip() +
       theme_bw() +
-      geom_text(aes(label = .data[[outcome]]), colour = "black", size = 3, hjust = -0.2) +
+      geom_text(aes(label = .data[[outcome]]), colour = "black", size = 6, hjust = -0.2) +
       scale_y_continuous(
         expand = c(0, 0), limits = c(0, 1.11*max(data_i[[outcome]]))) +
       facet_col(facets = vars(`Clinical Group`),
                 scales = "free_y",
-                space = "free")
+                space = "free") +
+      theme(text = element_text(size=22)) #change font size of  text
 
-    ggsave(paste("../output/Deaths/PrimaryCause/ClinicalGroups/PrimaryCause_", outcome, "_", area, ".png", sep = ""), plot_i, width = 9, height= 12)
+    ggsave(paste("../output/Deaths/PrimaryCause/ClinicalGroups/PrimaryCause_", outcome, "_", area, ".svg", sep = ""), plot_i, width = 15, height= 12)
 
   }
 }
@@ -238,9 +239,10 @@ for(outcome in outcomes) {
       facet_col(facets = vars(`Clinical Group`),
                 scales = "free_y",
                 space = "free") +
-      scale_fill_viridis(discrete = TRUE, option = "magma", begin = 0.15, end = 0.95)
+      scale_fill_viridis(discrete = TRUE, option = "magma", begin = 0.15, end = 0.95) +
+      theme(text = element_text(size=20)) #change font size of  text
 
-    ggsave(paste("../output/Deaths/PrimaryCause/ClinicalGroups/PrimaryCause_", outcome, "_BSol_", characteristic, ".png", sep = ""), plot_i, width = 10, height= 12) }
+    ggsave(paste("../output/Deaths/PrimaryCause/ClinicalGroups/PrimaryCause_", outcome, "_BSol_", characteristic, ".png", sep = ""), plot_i, width = 12, height= 12) }
 
 }
 
@@ -326,14 +328,15 @@ for (outcome in outcomes) {
       labs( y = paste("Average Yearly", outcome, "(All Cause), 2014 to 2023,", area), x = "") +
       coord_flip() +
       theme_bw() +
-      geom_text(aes(label = .data[[outcome]]), colour = "black", size = 3, hjust = -0.2) +
+      geom_text(aes(label = .data[[outcome]]), colour = "black", size = 6, hjust = -0.2) +
       scale_y_continuous(
         expand = c(0, 0), limits = c(0, 1.11*max(data_i[[outcome]]))) +
       facet_col(facets = vars(`Clinical Group`),
                 scales = "free_y",
-                space = "free")
+                space = "free") +
+      theme(text = element_text(size=19.2)) #change font size of  text
 
-    ggsave(paste("../output/Deaths/AllCause/ClinicalGroups/AllCause_", outcome, "_", area, ".png", sep = ""), plot_i, width = 9, height= 12)
+    ggsave(paste("../output/Deaths/AllCause/ClinicalGroups/AllCause_", outcome, "_", area, ".svg", sep = ""), plot_i, width = 15, height= 12)
 
   }
 }
